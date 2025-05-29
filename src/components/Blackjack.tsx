@@ -184,15 +184,28 @@ const Blackjack: React.FC = () => {
         </div>
 
         {gameState === 'waiting' && (
-          <div className="text-center py-8">
-            <Button onClick={startGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-8 py-3 text-lg hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
+          <div className="text-center py-8 space-y-4">
+            <Button 
+              onClick={startGame}
+              className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-8 py-3 text-lg hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30"
+            >
               Start Game
             </Button>
-            <div className="mt-6">
+
+            <div className="flex flex-col items-center space-y-2">
               <div className="flex items-center justify-center gap-2 bg-gray-800/50 backdrop-blur-sm border border-gray-600 rounded-lg px-3 py-2 inline-flex">
                 <Globe className="h-4 w-4 text-mantle-mint" />
                 <span className="text-sm text-gray-300">Online coming soon</span>
               </div>
+
+              <a
+                href="https://x.com/Keri_Evd"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-gray-800/50 backdrop-blur-sm border border-gray-600 rounded-lg px-3 py-2 inline-flex hover:border-mantle-pink transition-all"
+              >
+                <span className="text-sm text-gray-400">Cards by Keri</span>
+              </a>
             </div>
           </div>
         )}
