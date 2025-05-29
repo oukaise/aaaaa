@@ -138,32 +138,29 @@ const Blackjack: React.FC = () => {
   const renderCard = (card: Card, hidden = false, index = 0) => {
     if (hidden) {
       return (
-        <div className="w-20 h-28 bg-gradient-to-br from-blue-800 to-blue-900 border-2 border-blue-600 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-blue-500/30">
-          <div className="text-blue-300 text-2xl">?</div>
+        <div className="w-20 h-28 bg-gray-800 border-2 border-gray-600 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300 shadow-lg">
+          <div className="text-gray-400 text-2xl">?</div>
         </div>
       );
     }
 
-    const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
-    
+    const imageName = `${card.value}_${card.suit}.png`;
+    const imagePath = `/cards/${imageName}`;
+
     return (
-      <div 
-        className="w-20 h-28 bg-white border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center text-black relative transform hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-xl"
-        style={{ 
-          color: isRed ? '#ef4444' : '#000000'
+      <img
+        key={index}
+        src={imagePath}
+        alt={`${card.value} of ${card.suit}`}
+        className="w-20 h-28 object-cover rounded-lg border-2 border-gray-300 transform hover:scale-105 hover:-translate-y-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+        style={{ animationDelay: `${index * 100}ms` }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = "/cards/fallback.png";
         }}
-      >
-        <div className="text-lg font-bold">{card.value}</div>
-        <div className="text-2xl">
-          {card.suit === 'hearts' && '♥️'}
-          {card.suit === 'diamonds' && '♦️'}
-          {card.suit === 'clubs' && '♣️'}
-          {card.suit === 'spades' && '♠️'}
-        </div>
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-transparent via-transparent to-white/20 pointer-events-none"></div>
-      </div>
+      />
     );
   };
+
 
   const playerScore = calculateScore(playerCards);
   const dealerScore = calculateScore(dealerCards);
