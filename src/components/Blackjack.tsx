@@ -4,8 +4,8 @@ import GlassCard from './GlassCard';
 import { Spade, ArrowLeft, RotateCcw, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const winSound = new Audio('/sounds/win.mp3');
-const loseSound = new Audio('/sounds/lose.mp3');
+const [winSound] = useState(new Audio('/sounds/win.mp3'));
+const [loseSound] = useState(new Audio('/sounds/lose.mp3'));
 
 type Card = {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
