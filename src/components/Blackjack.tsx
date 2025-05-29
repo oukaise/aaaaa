@@ -1,9 +1,11 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import GlassCard from './GlassCard';
-import { Spade, ArrowLeft, RotateCcw, Plus, Globe } from 'lucide-react';
+import { Spade, ArrowLeft, RotateCcw, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const winSound = new Audio('/sounds/win.mp3');
+const loseSound = new Audio('/sounds/lose.mp3');
 
 type Card = {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
@@ -29,7 +31,7 @@ const Blackjack: React.FC = () => {
         let numValue = parseInt(value);
         if (value === 'A') numValue = 11;
         if (['J', 'Q', 'K'].includes(value)) numValue = 10;
-        
+
         newDeck.push({ suit, value, numValue });
       });
     });
@@ -67,7 +69,6 @@ const Blackjack: React.FC = () => {
     const playerStartCards: Card[] = [];
     const dealerStartCards: Card[] = [];
 
-    // Deal 2 cards to each
     const card1 = dealCard(newDeck);
     const card2 = dealCard(newDeck);
     const card3 = dealCard(newDeck);
@@ -90,8 +91,9 @@ const Blackjack: React.FC = () => {
       const newPlayerCards = [...playerCards, newCard];
       setPlayerCards(newPlayerCards);
       setDeck(deck.filter(card => card !== newCard));
-      
+
       if (calculateScore(newPlayerCards) > 21) {
+        loseSound.play();
         setGameState('bust');
       }
     }
@@ -100,7 +102,7 @@ const Blackjack: React.FC = () => {
   const stand = () => {
     let currentDealerCards = [...dealerCards];
     let currentDeck = [...deck];
-    
+
     while (calculateScore(currentDealerCards) < 17) {
       const newCard = dealCard(currentDeck);
       if (newCard) {
@@ -108,16 +110,18 @@ const Blackjack: React.FC = () => {
         currentDeck = currentDeck.filter(card => card !== newCard);
       }
     }
-    
+
     setDealerCards(currentDealerCards);
     setDeck(currentDeck);
-    
+
     const playerScore = calculateScore(playerCards);
     const dealerScore = calculateScore(currentDealerCards);
-    
+
     if (dealerScore > 21 || playerScore > dealerScore) {
+      winSound.play();
       setGameState('playerWin');
     } else if (dealerScore > playerScore) {
+      loseSound.play();
       setGameState('dealerWin');
     } else {
       setGameState('tie');
@@ -127,12 +131,8 @@ const Blackjack: React.FC = () => {
   const resetGame = () => {
     setPlayerCards([]);
     setDealerCards([]);
-    setDeck([]);
     setGameState('waiting');
-    // Автоматически запускаем новую игру
-    setTimeout(() => {
-      startGame();
-    }, 100);
+    setDeck([]);
   };
 
   const renderCard = (card: Card, hidden = false, index = 0) => {
@@ -161,30 +161,21 @@ const Blackjack: React.FC = () => {
     );
   };
 
-
   const playerScore = calculateScore(playerCards);
   const dealerScore = calculateScore(dealerCards);
 
   return (
     <div className="min-h-screen bg-mantle-dark text-white flex items-center justify-center px-4">
-      {/* Back button */}
-      <Link 
-        to="/" 
-        className="fixed top-6 left-6 z-10"
-      >
-        <Button 
-          variant="outline"
-          className="border-gray-500 text-gray-400 hover:bg-gray-500 hover:text-white transition-all duration-300 hover:scale-105"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Portal
+      <Link to="/" className="fixed top-6 left-6 z-10">
+        <Button variant="outline" className="border-gray-500 text-gray-400 hover:bg-gray-500 hover:text-white transition-all duration-300 hover:scale-105">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portal
         </Button>
       </Link>
 
-      <GlassCard className="max-w-4xl mx-auto">
+      <GlassCard className="max-w-4xl mx-auto animate-fade-in">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center mb-4">
-            <Spade className="h-12 w-12 mr-3 text-mantle-mint" />
+            <Spade className="h-12 w-12 mr-3 text-mantle-mint animate-pulse-glow" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-mantle-mint to-mantle-pink bg-clip-text text-transparent">
               Blackjack
             </h1>
@@ -193,95 +184,73 @@ const Blackjack: React.FC = () => {
         </div>
 
         {gameState === 'waiting' && (
-          <div className="text-center py-8">
-            <Button 
-              onClick={startGame}
-              className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-8 py-3 text-lg hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30"
-            >
+          <div className="text-center py-8 animate-fade-in">
+            <Button onClick={startGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-8 py-3 text-lg hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
               Start Game
             </Button>
-            
-            {/* Online coming soon - moved under Start Game button */}
-            <div className="mt-6">
-              <div className="flex items-center justify-center gap-2 bg-gray-800/50 backdrop-blur-sm border border-gray-600 rounded-lg px-3 py-2 inline-flex">
-                <Globe className="h-4 w-4 text-mantle-mint" />
-                <span className="text-sm text-gray-300">Online coming soon</span>
-              </div>
-            </div>
           </div>
         )}
 
         {gameState !== 'waiting' && (
-          <div className="space-y-8">
-            {/* Dealer's Hand */}
+          <div className="space-y-8 animate-fade-in">
             <div className="text-center">
-              <h3 className="text-xl font-semibold mb-4 text-gray-300">
-                Dealer {gameState !== 'playing' && `(${dealerScore})`}
-              </h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-300">Dealer {gameState !== 'playing' && `(${dealerScore})`}</h3>
               <div className="flex justify-center gap-2 mb-4">
                 {dealerCards.map((card, index) => (
-                  <div key={index}>
-                    {renderCard(card, gameState === 'playing' && index === 1, index)}
-                  </div>
+                  <div key={index}>{renderCard(card, gameState === 'playing' && index === 1, index)}</div>
                 ))}
               </div>
             </div>
 
-            {/* Player's Hand */}
             <div className="text-center">
-              <h3 className="text-xl font-semibold mb-4 text-gray-300">
-                Your Hand ({playerScore})
-              </h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-300">Your Hand ({playerScore})</h3>
               <div className="flex justify-center gap-2 mb-4">
                 {playerCards.map((card, index) => (
-                  <div key={index}>
-                    {renderCard(card, false, index)}
-                  </div>
+                  <div key={index}>{renderCard(card, false, index)}</div>
                 ))}
               </div>
             </div>
 
-            {/* Game Controls */}
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-4 animate-fade-in">
               {gameState === 'playing' && (
                 <>
-                  <Button 
-                    onClick={hit}
-                    className="bg-mantle-mint text-black font-semibold px-6 hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Hit
+                  <Button onClick={hit} className="bg-mantle-mint text-black font-semibold px-6 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
+                    <Plus className="mr-2 h-4 w-4" /> Hit
                   </Button>
-                  <Button 
-                    onClick={stand}
-                    className="bg-mantle-pink text-black font-semibold px-6 hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-pink/30"
-                  >
+                  <Button onClick={stand} className="bg-mantle-pink text-black font-semibold px-6 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-pink/30">
                     Stand
                   </Button>
                 </>
               )}
-              
+
               {gameState !== 'playing' && gameState !== 'waiting' && (
-                <Button 
-                  onClick={resetGame}
-                  className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-6 hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30"
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  New Game
+                <Button onClick={resetGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-6 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
+                  <RotateCcw className="mr-2 h-4 w-4" /> New Game
                 </Button>
               )}
             </div>
 
-            {/* Game Status */}
             {gameState !== 'playing' && gameState !== 'waiting' && (
-              <div className="text-center p-4 border border-gray-600 rounded-lg bg-gray-800/30">
-                <p className="text-xl font-bold">
-                  {gameState === 'playerWin' && '🎉 You Win!'}
-                  {gameState === 'dealerWin' && '😔 Dealer Wins'}
-                  {gameState === 'tie' && '🤝 It\'s a Tie!'}
-                  {gameState === 'bust' && '💥 Bust! You went over 21'}
-                </p>
-              </div>
+              <>
+                <div className="text-center p-4 border border-gray-600 rounded-lg bg-gray-800/30 animate-scale-in">
+                  <p className="text-xl font-bold">
+                    {gameState === 'playerWin' && '🎉 You Win!'}
+                    {gameState === 'dealerWin' && '😔 Dealer Wins'}
+                    {gameState === 'tie' && "🤝 It's a Tie!"}
+                    {gameState === 'bust' && '💥 Bust! You went over 21'}
+                  </p>
+                </div>
+                <div className="text-center mt-4">
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=I just played Blackjack on the Mantle portal and ${gameState === 'playerWin' ? 'won 🎉' : 'lost 😔'}! Try it now: https://mantlegenesis.xyz/blackjack`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 px-5 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                  >
+                    Share on Twitter
+                  </a>
+                </div>
+              </>
             )}
           </div>
         )}
