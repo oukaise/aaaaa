@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import GlassCard from './GlassCard';
-import { Spade, ArrowLeft, RotateCcw, Plus } from 'lucide-react';
+import { Spade, ArrowLeft, RotateCcw, Plus, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const [winSound] = useState(new Audio('/sounds/win.mp3'));
-const [loseSound] = useState(new Audio('/sounds/lose.mp3'));
+const winSound = new Audio('/sounds/win.mp3');
+const loseSound = new Audio('/sounds/lose.mp3');
 
 type Card = {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
@@ -31,7 +31,6 @@ const Blackjack: React.FC = () => {
         let numValue = parseInt(value);
         if (value === 'A') numValue = 11;
         if (['J', 'Q', 'K'].includes(value)) numValue = 10;
-
         newDeck.push({ suit, value, numValue });
       });
     });
@@ -60,9 +59,7 @@ const Blackjack: React.FC = () => {
     return score;
   };
 
-  const dealCard = (currentDeck: Card[]) => {
-    return currentDeck.pop();
-  };
+  const dealCard = (currentDeck: Card[]) => currentDeck.pop();
 
   const startGame = () => {
     const newDeck = createDeck();
@@ -91,7 +88,6 @@ const Blackjack: React.FC = () => {
       const newPlayerCards = [...playerCards, newCard];
       setPlayerCards(newPlayerCards);
       setDeck(deck.filter(card => card !== newCard));
-
       if (calculateScore(newPlayerCards) > 21) {
         loseSound.play();
         setGameState('bust');
@@ -131,33 +127,38 @@ const Blackjack: React.FC = () => {
   const resetGame = () => {
     setPlayerCards([]);
     setDealerCards([]);
-    setGameState('waiting');
     setDeck([]);
+    setGameState('waiting');
+    setTimeout(() => {
+      startGame();
+    }, 100);
   };
 
   const renderCard = (card: Card, hidden = false, index = 0) => {
     if (hidden) {
       return (
-        <div className="w-20 h-28 bg-gray-800 border-2 border-gray-600 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300 shadow-lg">
-          <div className="text-gray-400 text-2xl">?</div>
+        <div className="w-20 h-28 bg-gradient-to-br from-blue-800 to-blue-900 border-2 border-blue-600 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-blue-500/30">
+          <div className="text-blue-300 text-2xl">?</div>
         </div>
       );
     }
 
-    const imageName = `${card.value}_${card.suit}.png`;
-    const imagePath = `/cards/${imageName}`;
+    const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
 
     return (
-      <img
-        key={index}
-        src={imagePath}
-        alt={`${card.value} of ${card.suit}`}
-        className="w-20 h-28 object-cover rounded-lg border-2 border-gray-300 transform hover:scale-105 hover:-translate-y-2 transition-all duration-300 shadow-lg hover:shadow-xl"
-        style={{ animationDelay: `${index * 100}ms` }}
-        onError={(e) => {
-          (e.target as HTMLImageElement).src = "/cards/fallback.png";
-        }}
-      />
+      <div 
+        className="w-20 h-28 bg-white border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center text-black relative transform hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-xl"
+        style={{ color: isRed ? '#ef4444' : '#000000' }}
+      >
+        <div className="text-lg font-bold">{card.value}</div>
+        <div className="text-2xl">
+          {card.suit === 'hearts' && '♥️'}
+          {card.suit === 'diamonds' && '♦️'}
+          {card.suit === 'clubs' && '♣️'}
+          {card.suit === 'spades' && '♠️'}
+        </div>
+        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-transparent via-transparent to-white/20 pointer-events-none"></div>
+      </div>
     );
   };
 
@@ -172,10 +173,10 @@ const Blackjack: React.FC = () => {
         </Button>
       </Link>
 
-      <GlassCard className="max-w-4xl mx-auto animate-fade-in">
+      <GlassCard className="max-w-4xl mx-auto">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center mb-4">
-            <Spade className="h-12 w-12 mr-3 text-mantle-mint animate-pulse-glow" />
+            <Spade className="h-12 w-12 mr-3 text-mantle-mint" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-mantle-mint to-mantle-pink bg-clip-text text-transparent">
               Blackjack
             </h1>
@@ -184,15 +185,21 @@ const Blackjack: React.FC = () => {
         </div>
 
         {gameState === 'waiting' && (
-          <div className="text-center py-8 animate-fade-in">
-            <Button onClick={startGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-8 py-3 text-lg hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
+          <div className="text-center py-8">
+            <Button onClick={startGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-8 py-3 text-lg hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
               Start Game
             </Button>
+            <div className="mt-6">
+              <div className="flex items-center justify-center gap-2 bg-gray-800/50 backdrop-blur-sm border border-gray-600 rounded-lg px-3 py-2 inline-flex">
+                <Globe className="h-4 w-4 text-mantle-mint" />
+                <span className="text-sm text-gray-300">Online coming soon</span>
+              </div>
+            </div>
           </div>
         )}
 
         {gameState !== 'waiting' && (
-          <div className="space-y-8 animate-fade-in">
+          <div className="space-y-8">
             <div className="text-center">
               <h3 className="text-xl font-semibold mb-4 text-gray-300">Dealer {gameState !== 'playing' && `(${dealerScore})`}</h3>
               <div className="flex justify-center gap-2 mb-4">
@@ -211,46 +218,34 @@ const Blackjack: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-center gap-4 animate-fade-in">
+            <div className="flex justify-center gap-4">
               {gameState === 'playing' && (
                 <>
-                  <Button onClick={hit} className="bg-mantle-mint text-black font-semibold px-6 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
+                  <Button onClick={hit} className="bg-mantle-mint text-black font-semibold px-6 hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
                     <Plus className="mr-2 h-4 w-4" /> Hit
                   </Button>
-                  <Button onClick={stand} className="bg-mantle-pink text-black font-semibold px-6 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-pink/30">
+                  <Button onClick={stand} className="bg-mantle-pink text-black font-semibold px-6 hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-pink/30">
                     Stand
                   </Button>
                 </>
               )}
 
               {gameState !== 'playing' && gameState !== 'waiting' && (
-                <Button onClick={resetGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-6 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
+                <Button onClick={resetGame} className="bg-gradient-to-r from-mantle-mint to-mantle-pink text-black font-bold px-6 hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-mantle-mint/30">
                   <RotateCcw className="mr-2 h-4 w-4" /> New Game
                 </Button>
               )}
             </div>
 
             {gameState !== 'playing' && gameState !== 'waiting' && (
-              <>
-                <div className="text-center p-4 border border-gray-600 rounded-lg bg-gray-800/30 animate-scale-in">
-                  <p className="text-xl font-bold">
-                    {gameState === 'playerWin' && '🎉 You Win!'}
-                    {gameState === 'dealerWin' && '😔 Dealer Wins'}
-                    {gameState === 'tie' && "🤝 It's a Tie!"}
-                    {gameState === 'bust' && '💥 Bust! You went over 21'}
-                  </p>
-                </div>
-                <div className="text-center mt-4">
-                  <a
-                    href={`https://twitter.com/intent/tweet?text=I just played Blackjack on the Mantle portal and ${gameState === 'playerWin' ? 'won 🎉' : 'lost 😔'}! Try it now: https://mantlegenesis.xyz/blackjack`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-2 px-5 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                  >
-                    Share on Twitter
-                  </a>
-                </div>
-              </>
+              <div className="text-center p-4 border border-gray-600 rounded-lg bg-gray-800/30">
+                <p className="text-xl font-bold">
+                  {gameState === 'playerWin' && '🎉 You Win!'}
+                  {gameState === 'dealerWin' && '😔 Dealer Wins'}
+                  {gameState === 'tie' && '🤝 It\'s a Tie!'}
+                  {gameState === 'bust' && '💥 Bust! You went over 21'}
+                </p>
+              </div>
             )}
           </div>
         )}
